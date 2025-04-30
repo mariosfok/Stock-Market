@@ -18,10 +18,31 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 import org.json.JSONObject;
+
+/*
+This class represents the GUI for the Stock Market application.
+It allows the user to perform the following actions:
+1. Enter a stock symbol and quantity of shares to buy.
+2. Perform a buy or sell operation for a stock.
+3. View and manage the portfolio stored in a text file.
+4. Display information about the application's functionality.
+
+Key Components:
+- Stock Code Input Field: Where the user enters the stock symbol.
+- Quantity Input Field: Where the user enters the quantity of shares to buy or sell.
+- Buy Button: Executes a buy operation for the entered stock symbol and quantity.
+- Sell Button: Executes a sell operation for the entered stock symbol and quantity.
+- Portfolio Button: Opens the portfolio file where all stock transactions are stored.
+- Info Button: Displays a window with application information.
+- API Connection: Fetches live stock prices from Alpha Vantage API.
+*/
+
 
 public class StockMarketGUI extends JFrame {
 
@@ -32,6 +53,7 @@ public class StockMarketGUI extends JFrame {
 	private JTextField quantity;
 	private JLabel lblNewLabel_1;
 	private JButton btnNewButton_1;
+	private JButton btnNewButton_2;
 	
 	
 	public StockMarketGUI(Portfolio portfolio) {
@@ -80,8 +102,22 @@ public class StockMarketGUI extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				
 				String symbol = stockCode.getText();
-				int stockQuantity = Integer.parseInt(quantity.getText());
+				int stockQuantity;
+				
+				    String input = quantity.getText();
+				    try {
+				        stockQuantity = Integer.parseInt(input);
+				        if (stockQuantity <= 0) {
+				            JOptionPane.showMessageDialog(null, "Quantity must be over 0.", "Error", JOptionPane.ERROR_MESSAGE);
+				        }
+				    } catch (NumberFormatException e1) {
+				        JOptionPane.showMessageDialog(null, "Please enter a valid number.", "Error", JOptionPane.ERROR_MESSAGE);
+				        stockQuantity = -1; 
+				    }
+				 
+				
 				double pricePerShare = 0.0; //Placeholder
+
 				try {
 					pricePerShare = getStockPrice(symbol);
 				} catch (Exception e1) {
@@ -172,8 +208,43 @@ public class StockMarketGUI extends JFrame {
 		        }
 			}
 		});
-		btnNewButton_1.setBounds(10, 536, 152, 39);
+		btnNewButton_1.setBounds(10, 489, 152, 39);
 		contentPane.add(btnNewButton_1);
+		
+		btnNewButton_2 = new JButton("Info");
+		btnNewButton_2.setForeground(SystemColor.activeCaption);
+		btnNewButton_2.setBackground(SystemColor.desktop);
+		btnNewButton_2.setFont(new Font("Tahoma", Font.PLAIN, 18));
+		btnNewButton_2.setBounds(10, 536, 152, 42);
+		contentPane.add(btnNewButton_2);
+		
+		btnNewButton_2.addActionListener(new ActionListener() {
+		    @Override
+		    public void actionPerformed(ActionEvent e) {
+		        JFrame infoFrame = new JFrame("Informations");
+		        infoFrame.setSize(400, 300);
+		        infoFrame.setLocationRelativeTo(null); // Κέντρο της οθόνης
+		        infoFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Μόνο αυτό το παράθυρο κλείνει
+
+		        JTextArea textArea = new JTextArea();
+		        textArea.setText("• Adding new stock purchases by specifying the stock code, quantity\r\n"
+		        		+"\n"
+		        		+"• Selling existing stock purchases \r\n"
+		        		+"\n"
+		        		+"• All portfolio data is stored and managed through a file named Portfolio.txt.\r\n"
+		        		+"\n"
+		        		+ "• Each line in the Portfolio.txt follows the structure:\r\n"
+		        		
+		        		+ "CODE|QUANTITY|PRICE PER UNIT\r\n");
+		        textArea.setWrapStyleWord(true);
+		        textArea.setLineWrap(true);
+		        textArea.setEditable(false);
+		        
+		        infoFrame.getContentPane().add(new JScrollPane(textArea)); // αν έχεις πολλά κείμενα, scroll αυτόματα
+		        infoFrame.setVisible(true);
+		    }
+		});
+
 	}
 
 
@@ -215,4 +286,3 @@ public static double getStockPrice(String symbol) throws Exception {
   }
 
 }
-

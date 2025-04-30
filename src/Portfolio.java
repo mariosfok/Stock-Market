@@ -8,6 +8,22 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+
+
+/*
+This class represents a Portfolio for managing stock transactions.
+It provides functionality for:
+1. Buying stocks: The `buyStock` method creates a new transaction for buying stocks and adds it to the portfolio.
+2. Saving transactions: The `saveTransactionToFile` method saves each stock transaction to a file (portfolio.txt).
+3. Searching and selling stocks: The `searchAndSellStock` method searches for a stock symbol in the portfolio and sells the stock by updating the file. If there are enough stocks to sell, the file is updated, and the sold stocks are removed from the portfolio.
+4. Each transaction consists of the stock symbol, quantity, and price per share. These are stored as records in the portfolio file.
+5. Error handling: The program handles exceptions that may occur during reading or writing to the portfolio file and provides error messages when things go wrong.
+6. The file `portfolio.txt` stores all stock transactions in a simple text format, with each transaction on a new line.
+
+The class uses an ArrayList to hold the transactions in memory, and changes are persisted to the `portfolio.txt` file after each operation.
+*/
+
+
 public class Portfolio {
     private List<Transaction> transactions;
     private File portfolioFile;
