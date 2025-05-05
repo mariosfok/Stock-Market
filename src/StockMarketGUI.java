@@ -51,9 +51,9 @@ public class StockMarketGUI extends JFrame {
 	private JTextField stockCode;
 	private JLabel lblQuantintyYouWant;
 	private JTextField quantity;
-	private JLabel lblNewLabel_1;
 	private JButton btnNewButton_1;
 	private JButton btnNewButton_2;
+	private JTextField txtSellPrice;
 	
 	
 	public StockMarketGUI(Portfolio portfolio) {
@@ -73,23 +73,33 @@ public class StockMarketGUI extends JFrame {
 		JLabel lblNewLabel = new JLabel("Enter Stock Symbol");
 		lblNewLabel.setBackground(new Color(255, 255, 255));
 		lblNewLabel.setFont(new Font("Tahoma", Font.PLAIN, 24));
-		lblNewLabel.setBounds(405, 99, 280, 40);
+		lblNewLabel.setBounds(398, 31, 280, 40);
 		contentPane.add(lblNewLabel);
 		
 		stockCode = new JTextField();
-		stockCode.setBounds(309, 156, 409, 46);
+		stockCode.setBounds(309, 82, 409, 46);
 		contentPane.add(stockCode);
 		stockCode.setColumns(10);
 		
 		lblQuantintyYouWant = new JLabel("Quantity");
 		lblQuantintyYouWant.setFont(new Font("Tahoma", Font.PLAIN, 24));
-		lblQuantintyYouWant.setBounds(458, 230, 280, 40);
+		lblQuantintyYouWant.setBounds(456, 139, 108, 40);
 		contentPane.add(lblQuantintyYouWant);
 		
 		quantity = new JTextField();
 		quantity.setColumns(10);
-		quantity.setBounds(309, 281, 409, 46);
+		quantity.setBounds(309, 190, 409, 46);
 		contentPane.add(quantity);
+		
+		JLabel lblSellPrice = new JLabel("Sell Price");
+		lblSellPrice.setFont(new Font("Tahoma", Font.PLAIN, 24));
+		lblSellPrice.setBounds(456, 263, 108, 40);
+		contentPane.add(lblSellPrice);
+		
+		txtSellPrice = new JTextField();
+		txtSellPrice.setColumns(10);
+		txtSellPrice.setBounds(309, 314, 409, 46);
+		contentPane.add(txtSellPrice);
 	
 		
 		
@@ -137,7 +147,7 @@ public class StockMarketGUI extends JFrame {
 		
 		btnNewButton.setBackground(new Color(0, 128, 0));
 		btnNewButton.setFont(new Font("Arial", Font.PLAIN, 20));
-		btnNewButton.setBounds(309, 438, 134, 40);
+		btnNewButton.setBounds(310, 398, 134, 40);
 		contentPane.add(btnNewButton);
 
 		
@@ -147,7 +157,7 @@ public class StockMarketGUI extends JFrame {
 		btnSell.setForeground(Color.WHITE);
 		btnSell.setFont(new Font("Arial", Font.PLAIN, 20));
 		btnSell.setBackground(Color.RED);
-		btnSell.setBounds(584, 438, 134, 40);
+		btnSell.setBounds(584, 398, 134, 40);
 		
 		
 		contentPane.add(btnSell);
@@ -158,8 +168,7 @@ public class StockMarketGUI extends JFrame {
 		    public void actionPerformed(ActionEvent e) {
 		        String stockSymbol = stockCode.getText();
 		        int stockQuantity;
-		        
-		        // Έλεγχος για έγκυρη αριθμητική είσοδο
+
 		        try {
 		            stockQuantity = Integer.parseInt(quantity.getText());
 		        } catch (NumberFormatException ex) {
@@ -167,25 +176,31 @@ public class StockMarketGUI extends JFrame {
 		            return;
 		        }
 
-		        // API CONNECTION (Λήψη τιμής μετοχής)
-		        double price = 0.0; // Placeholder για API τιμή
+		        double sellingPrice;
+		        
+		        try {
+		            sellingPrice = Double.parseDouble(txtSellPrice.getText());
+		        } catch (NumberFormatException ex) {
+		            JOptionPane.showMessageDialog(null, "Invalid price format!", "Error", JOptionPane.ERROR_MESSAGE);
+		            return;
+		        }
 
-		        // Πώληση μετοχής
-		        boolean success = portfolio.searchAndSellStock(stockSymbol, stockQuantity, price);
+		        double profit = portfolio.searchAndSellStock(stockSymbol, stockQuantity, sellingPrice);
 
-		        // Προβολή αποτελέσματος στον χρήστη
-		        if (success) {
-		            JOptionPane.showMessageDialog(null, "Stock sold successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+		        if (profit != -1) {
+		            JOptionPane.showMessageDialog(null,
+		                String.format("Stock sold successfully!\nProfit/Loss: %.2f€", profit),
+		                "Success",
+		                JOptionPane.INFORMATION_MESSAGE);
 		        } else {
-		            JOptionPane.showMessageDialog(null, "Stock sale failed! Please check if you have enough shares.", "Error", JOptionPane.ERROR_MESSAGE);
+		            JOptionPane.showMessageDialog(null,
+		                "Stock sale failed! Please check if you have enough shares.",
+		                "Error",
+		                JOptionPane.ERROR_MESSAGE);
 		        }
 		    }
 		});
 
-		lblNewLabel_1 = new JLabel("Welcome To Stock Market");
-		lblNewLabel_1.setFont(new Font("SansSerif", Font.BOLD | Font.ITALIC, 26));
-		lblNewLabel_1.setBounds(355, 0, 409, 88);
-		contentPane.add(lblNewLabel_1);
 
 		//PORTFOLIO SECTION
 		btnNewButton_1 = new JButton("Portfolio");
@@ -208,15 +223,17 @@ public class StockMarketGUI extends JFrame {
 		        }
 			}
 		});
-		btnNewButton_1.setBounds(10, 489, 152, 39);
+		btnNewButton_1.setBounds(445, 535, 152, 39);
 		contentPane.add(btnNewButton_1);
 		
 		btnNewButton_2 = new JButton("Info");
 		btnNewButton_2.setForeground(SystemColor.activeCaption);
 		btnNewButton_2.setBackground(SystemColor.desktop);
 		btnNewButton_2.setFont(new Font("Tahoma", Font.PLAIN, 18));
-		btnNewButton_2.setBounds(10, 536, 152, 42);
+		btnNewButton_2.setBounds(641, 533, 152, 42);
 		contentPane.add(btnNewButton_2);
+		
+	
 		
 		btnNewButton_2.addActionListener(new ActionListener() {
 		    @Override
@@ -244,6 +261,38 @@ public class StockMarketGUI extends JFrame {
 		        infoFrame.setVisible(true);
 		    }
 		});
+		
+		
+		JButton btnNewButton_3 = new JButton("Check Stock Price");
+		btnNewButton_3.setForeground(SystemColor.activeCaption);
+		btnNewButton_3.setBackground(SystemColor.desktop);
+		btnNewButton_3.setFont(new Font("Tahoma", Font.PLAIN, 15));
+		btnNewButton_3.setBounds(249, 535, 152, 40);
+		contentPane.add(btnNewButton_3);
+		
+	
+		
+
+		
+		btnNewButton_3.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String stockSymbol = stockCode.getText();
+				
+				double pricePerShare = 0.0; //Placeholder
+
+				try {
+					pricePerShare = getStockPrice(stockSymbol);
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+				if(pricePerShare != -1) {
+					 JOptionPane.showMessageDialog(null, "The price of "+stockSymbol+" is at: "+pricePerShare);
+			   }
+			}
+		});
+	
 
 	}
 
@@ -284,5 +333,4 @@ public static double getStockPrice(String symbol) throws Exception {
         return -1; 
     }
   }
-
 }

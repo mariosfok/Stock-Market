@@ -53,13 +53,13 @@ public class Portfolio {
         }
     }
     
-   //Search From portfolio.txt and update it.
-    public boolean searchAndSellStock(String stockSymbol, int quantityToSell, double sellingPrice) {
-    	
+    public double searchAndSellStock(String stockSymbol, int quantityToSell, double sellingPrice) {
+
         List<String> updatedTransactions = new ArrayList<>();
+        
         int remainingQuantity = quantityToSell;
-        double totalPurchaseCost = 0; // Συνολικό κόστος αγοράς των μετοχών που πουλάμε
-        boolean stockFound = false;   // Για να ξέρουμε αν υπήρχαν μετοχές προς πώληση
+        double totalPurchaseCost = 0.0;
+        boolean stockFound = false;
 
         try (BufferedReader br = new BufferedReader(new FileReader(portfolioFile))) {
             String line;
@@ -73,36 +73,33 @@ public class Portfolio {
                 double purchasePrice = Double.parseDouble(parts[2]);
 
                 if (symbol.equals(stockSymbol) && remainingQuantity > 0) {
-                    stockFound = true; // Υπάρχουν μετοχές προς πώληση
+                    stockFound = true;
 
-                    if (quantity <= remainingQuantity) {  
-                        // Αν μπορούμε να πουλήσουμε ολόκληρη την εγγραφή, την αφαιρούμε
+                    if (quantity <= remainingQuantity) {
                         remainingQuantity -= quantity;
                         totalPurchaseCost += quantity * purchasePrice;
+                        // Μην προσθέτεις ξανά στο updatedTransactions — τις πουλάμε όλες
                     } else {
-                        // Αν πουλήσουμε μέρος της εγγραφής, κρατάμε την υπόλοιπη στο αρχείο
-                        int newQuantity = quantity - remainingQuantity;
-                        updatedTransactions.add(symbol + "," + newQuantity + "," + purchasePrice);
+                        int remainingInFile = quantity - remainingQuantity;
                         totalPurchaseCost += remainingQuantity * purchasePrice;
+                        updatedTransactions.add(symbol + "," + remainingInFile + "," + purchasePrice);
                         remainingQuantity = 0;
                     }
                 } else {
-                    // Αν δεν είναι η μετοχή που θέλουμε να πουλήσουμε, την κρατάμε κανονικά
-                    updatedTransactions.add(line);
+                    updatedTransactions.add(line); // Δεν αφορά αυτή τη μετοχή
                 }
             }
         } catch (IOException e) {
             System.err.println("Error reading portfolio file: " + e.getMessage());
-            return false;  // Αν δεν μπορούμε να διαβάσουμε το αρχείο, αποτυχία
+            return -1.0;
         }
 
-        // Αν δεν βρέθηκαν αρκετές μετοχές για να πουληθούν, ακυρώνουμε την πώληση
         if (!stockFound || remainingQuantity > 0) {
             System.err.println("Not enough stocks to sell.");
-            return false;
+            return -1.0;
         }
 
-        // Ενημέρωση αρχείου με τις νέες τιμές
+        // Ενημέρωση του αρχείου με τις νέες καταστάσεις
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(portfolioFile))) {
             for (String updatedLine : updatedTransactions) {
                 bw.write(updatedLine);
@@ -110,10 +107,15 @@ public class Portfolio {
             }
         } catch (IOException e) {
             System.err.println("Error updating portfolio file: " + e.getMessage());
-            return false;
+            return -1.0;
         }
 
-        return true;  // Επιτυχής πώληση
+        // Υπολογισμός κέρδους/ζημίας
+        double totalSellingRevenue = quantityToSell * sellingPrice;
+        double profit = totalSellingRevenue - totalPurchaseCost;
+
+        System.out.printf("Πώληση ολοκληρώθηκε. Κέρδος/Ζημία: %.2f€\n", profit);
+        return profit;
     }
 }
 
