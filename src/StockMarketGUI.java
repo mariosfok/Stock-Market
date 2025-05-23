@@ -57,12 +57,13 @@ public class StockMarketGUI extends JFrame {
 	
 	
 	public StockMarketGUI(Portfolio portfolio) {
-		
+		UserAccount userAccount = new UserAccount();
+
 		//WINDOW MAKER
 		setIconImage(Toolkit.getDefaultToolkit().getImage("C:\\Users\\Mario\\eclipse-workspace\\StockMarket\\app-logo.jpg"));
 		setTitle("Stock Market");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 1059, 625);
+		setBounds(100, 100, 514, 679);
 		contentPane = new JPanel();
 		contentPane.setBackground(new Color(234, 234, 234));
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -73,81 +74,98 @@ public class StockMarketGUI extends JFrame {
 		JLabel lblNewLabel = new JLabel("Enter Stock Symbol");
 		lblNewLabel.setBackground(new Color(255, 255, 255));
 		lblNewLabel.setFont(new Font("Tahoma", Font.PLAIN, 24));
-		lblNewLabel.setBounds(398, 31, 280, 40);
+		lblNewLabel.setBounds(10, 102, 215, 40);
 		contentPane.add(lblNewLabel);
 		
 		stockCode = new JTextField();
-		stockCode.setBounds(309, 82, 409, 46);
+		stockCode.setBounds(235, 105, 246, 46);
 		contentPane.add(stockCode);
 		stockCode.setColumns(10);
 		
 		lblQuantintyYouWant = new JLabel("Quantity");
 		lblQuantintyYouWant.setFont(new Font("Tahoma", Font.PLAIN, 24));
-		lblQuantintyYouWant.setBounds(456, 139, 108, 40);
+		lblQuantintyYouWant.setBounds(125, 172, 108, 40);
 		contentPane.add(lblQuantintyYouWant);
 		
 		quantity = new JTextField();
 		quantity.setColumns(10);
-		quantity.setBounds(309, 190, 409, 46);
+		quantity.setBounds(235, 175, 246, 46);
 		contentPane.add(quantity);
 		
 		JLabel lblSellPrice = new JLabel("Sell Price");
 		lblSellPrice.setFont(new Font("Tahoma", Font.PLAIN, 24));
-		lblSellPrice.setBounds(456, 263, 108, 40);
+		lblSellPrice.setBounds(125, 328, 108, 40);
 		contentPane.add(lblSellPrice);
 		
 		txtSellPrice = new JTextField();
 		txtSellPrice.setColumns(10);
-		txtSellPrice.setBounds(309, 314, 409, 46);
+		txtSellPrice.setBounds(235, 331, 246, 46);
 		contentPane.add(txtSellPrice);
 	
-		
+		//Money
+		JTextArea textArea = new JTextArea();
+		textArea.setEditable(false);
+		textArea.setBounds(82, 477, 62, 22);
+		contentPane.add(textArea);
+
 		
 		
 		//BUY SECTION
 		JButton btnNewButton = new JButton("Buy");
 		btnNewButton.setForeground(Color.WHITE);
 		btnNewButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				
-				String symbol = stockCode.getText();
-				int stockQuantity;
-				
-				    String input = quantity.getText();
-				    try {
-				        stockQuantity = Integer.parseInt(input);
-				        if (stockQuantity <= 0) {
-				            JOptionPane.showMessageDialog(null, "Quantity must be over 0.", "Error", JOptionPane.ERROR_MESSAGE);
-				        }
-				    } catch (NumberFormatException e1) {
-				        JOptionPane.showMessageDialog(null, "Please enter a valid number.", "Error", JOptionPane.ERROR_MESSAGE);
-				        stockQuantity = -1; 
-				    }
-				 
-				
-				double pricePerShare = 0.0; //Placeholder
+		    @Override
+		    public void actionPerformed(ActionEvent e) {
+		        String symbol = stockCode.getText();
+		        int stockQuantity;
 
-				try {
-					pricePerShare = getStockPrice(symbol);
-				} catch (Exception e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-				if(pricePerShare != -1) {
-				Stock stock = new Stock(symbol,pricePerShare,stockQuantity);
-				stock.buy(stockQuantity);
-				
-				portfolio.buyStock(stock, stockQuantity, pricePerShare);
-				}
+		        String input = quantity.getText();
+		        try {
+		            stockQuantity = Integer.parseInt(input);
+		            if (stockQuantity <= 0) {
+		                JOptionPane.showMessageDialog(null, "Quantity must be over 0.", "Error", JOptionPane.ERROR_MESSAGE);
+		                return;
+		            }
+		        } catch (NumberFormatException e1) {
+		            JOptionPane.showMessageDialog(null, "Please enter a valid number.", "Error", JOptionPane.ERROR_MESSAGE);
+		            return;
+		        }
 
-			}
+		        double pricePerShare = 0.0;
+
+		        try {
+		            pricePerShare = getStockPrice(symbol);
+		        } catch (Exception e1) {
+		            e1.printStackTrace();
+		        }
+
+		        if (pricePerShare != -1) {
+		            double totalCost = pricePerShare * stockQuantity;
+
+		            if (userAccount.canAfford(totalCost)) {
+		                userAccount.deduct(totalCost);
+
+		                Stock stock = new Stock(symbol, pricePerShare, stockQuantity);
+		                stock.buy(stockQuantity);
+		                portfolio.buyStock(stock, stockQuantity, pricePerShare);
+
+		                // Update the textArea with the new balance
+		                textArea.setText(String.format("%.2f", userAccount.getBalance()));
+
+		                JOptionPane.showMessageDialog(null, "Purchase completed successfully!\nBalance: €" + String.format("%.2f", userAccount.getBalance()));
+		            } else {
+		                JOptionPane.showMessageDialog(null, "Insufficient funds.\nBalance: €" + userAccount.getBalance(), "Insufficient Balance", JOptionPane.WARNING_MESSAGE);
+		            }
+		        }
+		    }
 		});
-		
+
+
+
 		
 		btnNewButton.setBackground(new Color(0, 128, 0));
 		btnNewButton.setFont(new Font("Arial", Font.PLAIN, 20));
-		btnNewButton.setBounds(310, 398, 134, 40);
+		btnNewButton.setBounds(347, 252, 134, 40);
 		contentPane.add(btnNewButton);
 
 		
@@ -157,7 +175,7 @@ public class StockMarketGUI extends JFrame {
 		btnSell.setForeground(Color.WHITE);
 		btnSell.setFont(new Font("Arial", Font.PLAIN, 20));
 		btnSell.setBackground(Color.RED);
-		btnSell.setBounds(584, 398, 134, 40);
+		btnSell.setBounds(347, 417, 134, 40);
 		
 		
 		contentPane.add(btnSell);
@@ -223,14 +241,14 @@ public class StockMarketGUI extends JFrame {
 		        }
 			}
 		});
-		btnNewButton_1.setBounds(445, 535, 152, 39);
+		btnNewButton_1.setBounds(175, 592, 134, 41);
 		contentPane.add(btnNewButton_1);
 		
 		btnNewButton_2 = new JButton("Info");
 		btnNewButton_2.setForeground(SystemColor.activeCaption);
 		btnNewButton_2.setBackground(SystemColor.desktop);
 		btnNewButton_2.setFont(new Font("Tahoma", Font.PLAIN, 18));
-		btnNewButton_2.setBounds(641, 533, 152, 42);
+		btnNewButton_2.setBounds(347, 592, 134, 42);
 		contentPane.add(btnNewButton_2);
 		
 	
@@ -246,10 +264,15 @@ public class StockMarketGUI extends JFrame {
 		        JTextArea textArea = new JTextArea();
 		        textArea.setText("• Adding new stock purchases by specifying the stock code, quantity\r\n"
 		        		+"\n"
-		        		+"• Selling existing stock purchases \r\n"
+		        		+"• Sell stocks by specifying the stock code,quantity and sell price"
+		        		+"\n"
+		        		+"\n"
+		        		+"• Load money by specifying the amount you want to add"
+		        		+"\n"
 		        		+"\n"
 		        		+"• All portfolio data is stored and managed through a file named Portfolio.txt.\r\n"
 		        		+"\n"
+		        		
 		        		+ "• Each line in the Portfolio.txt follows the structure:\r\n"
 		        		
 		        		+ "CODE|QUANTITY|PRICE PER UNIT\r\n");
@@ -267,8 +290,47 @@ public class StockMarketGUI extends JFrame {
 		btnNewButton_3.setForeground(SystemColor.activeCaption);
 		btnNewButton_3.setBackground(SystemColor.desktop);
 		btnNewButton_3.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		btnNewButton_3.setBounds(249, 535, 152, 40);
+		btnNewButton_3.setBounds(10, 592, 134, 42);
 		contentPane.add(btnNewButton_3);
+		
+
+		
+		JLabel lblWallet = new JLabel("Wallet:");
+		lblWallet.setFont(new Font("Tahoma", Font.PLAIN, 22));
+		lblWallet.setBackground(Color.WHITE);
+		lblWallet.setBounds(10, 464, 78, 40);
+		contentPane.add(lblWallet);
+		
+		
+		
+		JButton btnNewButton_3_1 = new JButton("Load Money");
+		btnNewButton_3_1.addActionListener(new ActionListener() {
+		    @Override
+		    public void actionPerformed(ActionEvent e) {
+		        String input = JOptionPane.showInputDialog("Enter amount to load:");
+		        try {
+		            double amount = Double.parseDouble(input);
+		            if (amount <= 0) {
+		                JOptionPane.showMessageDialog(null, "Amount must be greater than 0.", "Error", JOptionPane.ERROR_MESSAGE);
+		            } else {
+		                userAccount.loadMoney(amount);
+		                // Display only the updated balance
+		                textArea.setText(String.format("%.2f", userAccount.getBalance()));
+		            }
+		        } catch (NumberFormatException ex) {
+		            JOptionPane.showMessageDialog(null, "Invalid number entered.", "Error", JOptionPane.ERROR_MESSAGE);
+		        }
+		    }
+		});
+
+
+
+		
+		btnNewButton_3_1.setForeground(SystemColor.activeCaption);
+		btnNewButton_3_1.setFont(new Font("Tahoma", Font.PLAIN, 15));
+		btnNewButton_3_1.setBackground(SystemColor.desktop);
+		btnNewButton_3_1.setBounds(10, 511, 137, 40);
+		contentPane.add(btnNewButton_3_1);
 		
 	
 		
